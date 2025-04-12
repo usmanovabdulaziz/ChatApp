@@ -1,0 +1,11 @@
+venv/
+env/
+node/
+media/
+.idea/
+__pycache__/
+.mypy_cache/
+*.sqlite3
+.env
+Thumbs.db
+dump.rdb
