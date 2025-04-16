@@ -17,8 +17,8 @@
     <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style type="text/tailwindcss">
-        [x-cloak] { 
-            display: none !important; 
+        [x-cloak] {
+            display: none !important;
         }
         h1 {
             @apply text-4xl font-bold mb-4
@@ -36,7 +36,7 @@
             @apply bg-indigo-600 text-white font-bold rounded-lg shadow-lg transition-all cursor-pointer
         }
         .button, button a, [type='submit'], [type='button'] {
-            @apply px-6 py-4 inline-block 
+            @apply px-6 py-4 inline-block
         }
         .button:hover, button:hover, [type='submit']:hover, [type='button']:hover {
             @apply bg-indigo-700
@@ -105,10 +105,19 @@
         .alert-success { @apply bg-green-500 }
         .alert-warning { @apply bg-red-500 }
         .alert-danger { @apply bg-red-500 }
+        .green-dot {
+            @apply rounded-full bg-green-500 p-1.5
+        }
+        .gray-dot {
+            @apply rounded-full bg-gray-500 p-1.5
+        }
+        .graylight-dot {
+            @apply rounded-full bg-gray-300 p-1.5
+        }
     </style>
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="{% block class %}{% endblock %}">
-	
+
     {% include 'includes/messages.html' %}
 
     {% include 'includes/header.html' %}
