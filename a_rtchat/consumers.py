@@ -5,7 +5,6 @@ from django.shortcuts import get_object_or_404
 import json
 from django.template.loader import render_to_string
 from twisted.logger import eventAsText
-
 from a_rtchat.models import *
 
 
@@ -74,6 +73,16 @@ class ChatroomConsumer(WebsocketConsumer):
 
     def online_count_handler(self, event):
         online_count = event['online_count']
-        html = render_to_string("a_rtchat/partials/online_count.html", {'online_count': online_count})
+
+        chat_messages = ChatGroup.objects.get(group_name=self.chatroom_name).chat_messages.all()[:30]
+        author_ids = set([message.author.id for message in chat_messages])
+        users = User.objects.filter(id__in=author_ids)
+
+        context = {
+            'online_count': online_count,
+            'chat_group': self.chatroom,
+            'users': users
+        }
+        html = render_to_string("a_rtchat/partials/online_count.html", context)
         self.send(text_data=html)
 
