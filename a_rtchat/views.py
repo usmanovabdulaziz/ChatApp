@@ -1,4 +1,3 @@
-# a_rtchat/views.py
 import re
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -153,3 +152,79 @@ def create_groupchat(request):
         'form': form
     }
     return render(request, 'a_rtchat/create_groupchat.html', context)
+
+
+@login_required
+def chatroom_edit_view(request, chatroom_name):
+    chat_group = get_object_or_404(ChatGroup, group_name=chatroom_name)
+    if request.user != chat_group.admin:
+        raise Http404()
+
+    form = ChatRoomEditForm(instance=chat_group)
+
+    if request.method == 'POST':
+        form = ChatRoomEditForm(request.POST, instance=chat_group)
+        if form.is_valid():
+            form.save()
+
+            remove_members = request.POST.getlist('remove_members')
+            for member_id in remove_members:
+                member = User.objects.get(id=member_id)
+                chat_group.members.remove(member)
+
+            return redirect('chatroom', chatroom_name)
+
+    context = {
+        'form': form,
+        'chat_group': chat_group
+    }
+    return render(request, 'a_rtchat/chatroom_edit.html', context)
+
+
+@login_required
+def chatroom_delete_view(request, chatroom_name):
+    chat_group = get_object_or_404(ChatGroup, group_name=chatroom_name)
+    if request.user != chat_group.admin:
+        raise Http404()
+
+    if request.method == "POST":
+        chat_group.delete()
+        messages.success(request, 'Chatroom deleted')
+        return redirect('home')
+
+    return render(request, 'a_rtchat/chatroom_delete.html', {'chat_group': chat_group})
+
+
+@login_required
+def chatroom_leave_view(request, chatroom_name):
+    """
+    View for handling the action of leaving a chatroom.
+    - GET: Renders a modal to confirm leaving the chat.
+    - POST: Removes the user from the chat and redirects to the home page.
+    """
+    chat_group = get_object_or_404(ChatGroup, group_name=chatroom_name)
+
+    # Check if the user is a member of the chat
+    if request.user not in chat_group.members.all():
+        raise Http404()  # Raise 404 if the user is not a member
+
+    # Prevent the admin from leaving the chat via this view
+    if request.user == chat_group.admin:
+        messages.error(request, "Admins cannot leave the chat. Please delete the chat instead.")
+        if request.htmx:
+            # For HTMX requests, render an error message
+            return render(request, 'a_rtchat/partials/error_message.html',
+                          {'message': "Admins cannot leave the chat. Please delete the chat instead."})
+        return redirect('chatroom', chatroom_name)
+
+    if request.method == "POST":
+        # Remove the user from the chat group
+        chat_group.members.remove(request.user)
+        messages.success(request, 'You left the Chat')
+        return redirect('home')
+
+    # On GET, render the modal for confirmation
+    context = {
+        'chat_group': chat_group,
+    }
+    return render(request, 'a_rtchat/partials/modal_chat_leave.html', context)

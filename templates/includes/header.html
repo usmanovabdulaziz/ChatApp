@@ -1,17 +1,20 @@
 {% load static %}
 <header class="flex items-center justify-between bg-gray-800 h-20 px-8 text-white sticky top-0 z-40">
-    <div>
+    <div class="flex items-center">
         <a class="flex items-center gap-2" href="/">
             <img class="h-6" src="{% static 'images/logo.svg' %}" alt="Logo" />
             <span class="text-lg font-bold">Real-time Chat</span>
         </a>
+        <div id="online-user-count"></div>
     </div>
     <nav class="block relative">
         <ul class="navitems flex items-center justify-center h-full space-x-6">
             {% if request.user.is_authenticated %}
 
                 <!-- Chat Dropdown -->
-                <li x-data="{ openChatMenu: false }" class="relative">
+                <li x-data="{ openChatMenu: false }" class="relative"
+                    hx-ext="ws"
+                    ws-connect="/ws/online-status/">
                     <button @click="openChatMenu = !openChatMenu" @click.away="openChatMenu = false"
                         class="flex items-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-md text-white focus:outline-none">
                         Chat
