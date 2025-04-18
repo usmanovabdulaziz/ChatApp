@@ -2,13 +2,16 @@
     <div class="bg-white p-6 rounded-lg shadow-lg w-96">
         <h2 class="text-xl font-bold mb-4">Leave this chat?</h2>
         <div class="flex justify-end gap-2">
-            <form method="POST" action="{% url 'chatroom-leave' chat_group.group_name %}" hx-post="{% url 'chatroom-leave' chat_group.group_name %}" hx-swap="none">
+            <form method="POST" action="{% url 'chatroom-leave' chat_group.group_name %}"
+                  hx-post="{% url 'chatroom-leave' chat_group.group_name %}"
+                  hx-swap="none">
                 {% csrf_token %}
                 <button type="submit" class="bg-red-500 text-white font-bold rounded-lg px-4 py-2 hover:bg-red-600">
                     Yes, I want to leave
                 </button>
             </form>
-            <button class="bg-gray-300 text-black font-bold rounded-lg px-4 py-2 hover:bg-gray-400" hx-get="{% url 'chatroom' chat_group.group_name %}" hx-target="#chat_window" hx-swap="innerHTML">
+            <button class="bg-gray-300 text-black font-bold rounded-lg px-4 py-2 hover:bg-gray-400"
+                    onclick="document.getElementById('leave-chat-modal').remove()">
                 Cancel
             </button>
         </div>

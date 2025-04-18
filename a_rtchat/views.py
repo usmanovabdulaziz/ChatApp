@@ -68,7 +68,7 @@ def chat_views(request, chatroom_name='public-chat'):
                 'message': message,
                 'user': request.user,
             }
-            return render(request, 'a_rtchat/partials/chat_messgae_p.html', context)
+            return render(request, 'a_rtchat/partials/chat_message_p.html', context)
 
     context = {
         'chat_messages': chat_messages,
@@ -197,34 +197,45 @@ def chatroom_delete_view(request, chatroom_name):
 
 @login_required
 def chatroom_leave_view(request, chatroom_name):
-    """
-    View for handling the action of leaving a chatroom.
-    - GET: Renders a modal to confirm leaving the chat.
-    - POST: Removes the user from the chat and redirects to the home page.
-    """
     chat_group = get_object_or_404(ChatGroup, group_name=chatroom_name)
 
-    # Check if the user is a member of the chat
     if request.user not in chat_group.members.all():
-        raise Http404()  # Raise 404 if the user is not a member
+        raise Http404()
 
-    # Prevent the admin from leaving the chat via this view
     if request.user == chat_group.admin:
         messages.error(request, "Admins cannot leave the chat. Please delete the chat instead.")
         if request.htmx:
-            # For HTMX requests, render an error message
             return render(request, 'a_rtchat/partials/error_message.html',
                           {'message': "Admins cannot leave the chat. Please delete the chat instead."})
         return redirect('chatroom', chatroom_name)
 
     if request.method == "POST":
-        # Remove the user from the chat group
         chat_group.members.remove(request.user)
         messages.success(request, 'You left the Chat')
-        return redirect('home')
+        return redirect('home')  # Bu qator `home`ga yo‘naltiradi
 
-    # On GET, render the modal for confirmation
     context = {
         'chat_group': chat_group,
     }
     return render(request, 'a_rtchat/partials/modal_chat_leave.html', context)
+
+
+def chat_file_upload(request, chatroom_name):
+    chat_group = get_object_or_404(ChatGroup, group_name=chatroom_name)
+
+    if request.htmx and request.FILES:
+        file = request.FILES['file']
+        message = GroupMessage.objects.create(
+            file=file,
+            author=request.user,
+            group=chat_group,
+        )
+        channel_layer = get_channel_layer()
+        event = {
+            'type': 'message_handler',
+            'message_id': message.id,
+        }
+        async_to_sync(channel_layer.group_send)(
+            chatroom_name, event
+        )
+    return HttpResponse()

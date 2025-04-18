@@ -1,11 +1,9 @@
-from allauth.core.internal.httpkit import render_url
-from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from django.shortcuts import get_object_or_404
-import json
 from django.template.loader import render_to_string
-from twisted.logger import eventAsText
-from a_rtchat.models import *
+from asgiref.sync import async_to_sync
+import json
+from .models import *
 
 
 class ChatroomConsumer(WebsocketConsumer):
@@ -29,7 +27,6 @@ class ChatroomConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_discard)(
             self.chatroom_name, self.channel_name
         )
-
         # remove and update online users
         if self.user in self.chatroom.users_online.all():
             self.chatroom.users_online.remove(self.user)
@@ -58,8 +55,9 @@ class ChatroomConsumer(WebsocketConsumer):
         context = {
             'message': message,
             'user': self.user,
+            'chat_group': self.chatroom
         }
-        html = render_to_string("a_rtchat/partials/chat_messgae_p.html", context=context)
+        html = render_to_string("a_rtchat/partials/chat_message_p.html", context=context)
         self.send(text_data=html)
 
     def update_online_count(self):
@@ -67,7 +65,7 @@ class ChatroomConsumer(WebsocketConsumer):
 
         event = {
             'type': 'online_count_handler',
-            'online_count': online_count,
+            'online_count': online_count
         }
         async_to_sync(self.channel_layer.group_send)(self.chatroom_name, event)
 
